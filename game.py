@@ -32,12 +32,12 @@ sound_on = True
 mute_button_clicked = False
 
 # ЗАГРУЗКА ВСЕХ ЭЛЕМЕНТОВ КАРТЫ
-platforms = build("platformer_water_platforms.csv", TILE_SIZE)
-mini_objects = build("platformer_water_mini_objects.csv", TILE_SIZE)
-trees = build("platformer_water_trees.csv", TILE_SIZE)
-water_obstacles = build("platformer_water_water_obstacles.csv", TILE_SIZE)
-diamonds = build("platformer_water_diamonds.csv", TILE_SIZE)
-obstacles = build("platformer_water_obstacles.csv", TILE_SIZE)
+platforms = build("game_map/platformer_water_platforms.csv", TILE_SIZE)
+mini_objects = build("game_map/platformer_water_mini_objects.csv", TILE_SIZE)
+trees = build("game_map/platformer_water_trees.csv", TILE_SIZE)
+water_obstacles = build("game_map/platformer_water_water_obstacles.csv", TILE_SIZE)
+diamonds = build("game_map/platformer_water_diamonds.csv", TILE_SIZE)
+obstacles = build("game_map/platformer_water_obstacles.csv", TILE_SIZE)
 
 # ГЛАВНЫЙ ГЕРОЙ
 color_key = (0, 0, 0)
@@ -311,7 +311,7 @@ def reset_game():
     for diamond in diamonds:
         diamonds.remove(diamond)
 
-    diamonds = build("platformer_water_diamonds.csv", TILE_SIZE)
+    diamonds = build("game_map/platformer_water_diamonds.csv", TILE_SIZE)
 
 
 def move_enemy(enemy):
