@@ -277,7 +277,7 @@ def sound_on_off():
 def on_key_down(key):
     global pause, show_main_menu, win, over
 
-    if not over:
+    if not over and not win:
         if key == keys.SPACE:
             pause = not pause
 
