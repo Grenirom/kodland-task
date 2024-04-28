@@ -338,11 +338,16 @@ class SpriteActor(Actor):
         self.pos = p
         self._mask = None
 
+    def _update_surf(self):
+        self._orig_surf = self.sprite.images[self.sprite.i]
+        self._transform_surf()
+
     def draw(self):
         if self.sprite:
             if self.sprite.frame_num == 0:
                 self.sprite.i = (self.sprite.i + 1) % len(self.sprite.images)
                 self.sprite.frame_num = self.sprite.frames
+                self._update_surf()
             else:
                 self.sprite.frame_num -= 1
             self._orig_surf = self._surf = self.sprite.images[self.sprite.i]

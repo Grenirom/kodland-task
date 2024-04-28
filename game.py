@@ -1,9 +1,5 @@
-import sys
-
 import pgzrun
-import pygame
 
-from sprites_logic import build
 from button import Button
 from sprites_logic import *
 
@@ -19,13 +15,14 @@ WIDTH = 800
 HEIGHT = 540
 TITLE = "Platformer"
 
-menu_font = "far_cry_cyr_regular_0"
 main_menu_background_image = "background_image.png"
 
-game_background_image = "image"
+game_background_image = "game_background.png"
 
 click_sound = "sounds/click_button.mp3"
 background_music = "background_sound.mp3"
+
+custom_font = "thaleahfat"
 
 music.play(background_music)
 music.set_volume(0.5)
@@ -42,11 +39,19 @@ water_obstacles = build("platformer_water_water_obstacles.csv", TILE_SIZE)
 diamonds = build("platformer_water_diamonds.csv", TILE_SIZE)
 obstacles = build("platformer_water_obstacles.csv", TILE_SIZE)
 
-# СПРАЙТЫ
+# ГЛАВНЫЙ ГЕРОЙ
 color_key = (0, 0, 0)
-fox_stand = Sprite("fox_sprite_sheet.png", (0, 32, 32, 32), 14, color_key, 30)
-fox_walk = Sprite("fox_sprite_sheet.png", (0, 64, 32, 32), 8, color_key, 5)
+fox_stand = Sprite("fox_sprite_sheet.png", (0, 32, 32, 32), 14, color_key, 8)
+fox_walk = Sprite("fox_sprite_sheet.png", (0, 64, 32, 32), 8, color_key, 8)
 
+
+# ВРАГ 1
+zombie_walk = Sprite("zombie.png", (0, 64, 32, 32), 8, color_key, 8)
+zombie_player = SpriteActor(zombie_walk)
+zombie_player.midleft = (14, 254)
+zombie_player.velocity_x = 1
+
+# ИГРОК
 player = SpriteActor(fox_stand)
 player.bottomleft = (0, HEIGHT - TILE_SIZE)
 player.velocity_x = 4
@@ -83,70 +88,87 @@ def draw():
 
         if player.alive:
             player.draw()
+            zombie_player.draw()
 
         if over:
-            screen.draw.text("ИГРА ОКОНЧЕНА, ДЛЯ ПРОДОЛЖЕНИЯ НАЖМИТЕ КНОПКУ 'ENTER'", center=(WIDTH / 2, HEIGHT / 2))
+            screen.draw.text(
+                "GAME OVER",
+                center=(WIDTH / 2, HEIGHT / 2 - 30),
+                color="red",
+                fontname=custom_font,
+                fontsize=70,
+            )
+            screen.draw.text(
+                "PRESS 'ENTER' TO TRY AGAIN",
+                center=(WIDTH / 2, HEIGHT / 2 + 40),
+                color="red",
+                fontname=custom_font,
+                fontsize=50,
+            )
         if win:
-            screen.draw.text("YOU WON", center=(WIDTH / 2, HEIGHT / 2))
+            screen.draw.text(
+                "YOU WON",
+                center=(WIDTH / 2, HEIGHT / 2 - 30),
+                color='green',
+                fontname=custom_font,
+                fontsize=70,
+            )
+            screen.draw.text(
+                "PRESS 'ENTER' TO PLAY AGAIN",
+                center=(WIDTH / 2, HEIGHT / 2 + 40),
+                color="green",
+                fontname=custom_font,
+                fontsize=50,
+            )
         if pause:
-            screen.draw.text('ИГРА ПРИОСТАНОВЛЕНА, НАЖМИТЕ ПРОБЕЛ ДЛЯ ВОЗОБНОВЛЕНИЯ', center=(WIDTH / 2, HEIGHT / 2))
-
+            screen.draw.text(
+                "GAME PAUSED",
+                center=(WIDTH / 2, HEIGHT / 2 - 30),
+                color="black",
+                fontname=custom_font,
+                fontsize=70,
+            )
+            screen.draw.text(
+                "PRESS 'SPACE' TO PLAY CONTINUE",
+                center=(WIDTH / 2, HEIGHT / 2 + 40),
+                color="black",
+                fontname=custom_font,
+                fontsize=50,
+            )
 
 def update():
-    # declare scope of global variables
     global win, over, pause, show_main_menu
 
-    # if game is over, no more updating game state, just return
     if over or win or pause:
         return
 
-    # handle fox left movement
     if keyboard.LEFT and player.left > 0:
         player.x -= player.velocity_x
-        # flip image and change sprite
         player.sprite = fox_walk
         player.flip_x = True
-        # if the movement caused a collision
         if player.collidelist(platforms) != -1:
-            # get object that fox collided with
             collided = platforms[player.collidelist(platforms)]
-            # use it to calculate position where there is no collision
             player.left = collided.right
 
-    # handle fox right movement
     elif keyboard.RIGHT and player.right < WIDTH:
         player.x += player.velocity_x
-        # flip image and change sprite
         player.sprite = fox_walk
         player.flip_x = False
-        # if the movement caused a collision
         if player.collidelist(platforms) != -1:
-            # get object that fox collided with
             collided = platforms[player.collidelist(platforms)]
-            # use it to calculate position where there is no collision
             player.right = collided.left
 
-    # handle gravity
     player.y += player.velocity_y
     player.velocity_y += gravity
-    # if the movement caused a collision, move position back
     if player.collidelist(platforms) != -1:
-        # get object that fox collided with
         collided = platforms[player.collidelist(platforms)]
-        # moving down - hit the ground
         if player.velocity_y >= 0:
-            # move fox up to no collision position
             player.bottom = collided.top
-            # no longer jumping
             player.jumping = False
-        # moving up - bumped their head
         else:
-            # move fox down to no collision position
             player.top = collided.bottom
-        # reset velocity
         player.velocity_y = 0
 
-    # fox collided with obstacle, game over
     if player.collidelist(obstacles) != -1:
         player.alive = False
         over = True
@@ -155,63 +177,14 @@ def update():
         player.alive = False
         over = True
 
-    # check if fox collected mushrooms
     for diamond in diamonds:
         if player.colliderect(diamond):
             diamonds.remove(diamond)
 
-    # check if fox collected all mushrooms
     if len(diamonds) == 0:
         win = True
 
-#
-# def update():
-#     global over, win
-#     if not show_main_menu:
-#         if keyboard.LEFT and player.midleft[0] > 0:
-#             player.x -= player.velocity_x
-#             player.sprite = fox_walk
-#             player.flip_x = True
-#
-#             if player.collidelist(platforms) != -1:
-#                 object = platforms[player.collidelist(platforms)]
-#                 player.x = object.x + (object.width / 2 + player.width / 2)
-#
-#         elif keyboard.RIGHT and player.midright[0] < WIDTH:
-#             player.x += player.velocity_x
-#             player.sprite = fox_walk
-#             player.flip_x = False
-#
-#             if player.collidelist(platforms) != -1:
-#                 object = platforms[player.collidelist(platforms)]
-#                 player.x = object.x - (object.width / 2 + player.width / 2)
-#
-#     player.y += player.velocity_y
-#     player.velocity_y += gravity
-#
-#     if player.collidelist(platforms) != -1:
-#         object = platforms[player.collidelist(platforms)]
-#
-#         if player.velocity_y >= 0:
-#             player.y = object.y - (object.height / 2 + player.height / 2)
-#             player.jumping = False
-#
-#         else:
-#             player.y = object.y + (object.height / 2 + player.height / 2)
-#
-#         player.velocity_y = 0
-#
-#     if player.collidelist(water_obstacles) != -1:
-#         player.alive = False
-#         over = True
-#
-#     for diamond in diamonds:
-#         if player.colliderect(diamond):
-#             diamonds.remove(diamond)
-#
-#         if len(diamonds) == 0:
-#             win = True
-#             over = True
+    move_enemy(zombie_player)
 
 
 def main_menu():
@@ -312,7 +285,7 @@ def on_key_down(key):
         player.velocity_y = jump_velocity
         player.jumping = True
 
-    if over:
+    if over or win:
         if key == keys.RETURN:
             reset_game()
 
@@ -339,6 +312,25 @@ def reset_game():
         diamonds.remove(diamond)
 
     diamonds = build("platformer_water_diamonds.csv", TILE_SIZE)
+
+
+def move_enemy(enemy):
+    global over
+
+    if enemy.velocity_x > 0:
+        if enemy.right >= WIDTH / 2 - 50:
+            enemy.velocity_x *= -1
+            enemy.flip_x = True
+
+    elif enemy.velocity_x < 0:
+        if enemy.left <= 10:
+            enemy.velocity_x *= -1
+            enemy.flip_x = False
+
+    enemy.x += enemy.velocity_x
+
+    if player.colliderect(enemy):
+        over = True
 
 
 pgzrun.go()
